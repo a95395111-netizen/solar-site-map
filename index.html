@@ -9,24 +9,21 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
   :root{
-    --bg:#080c16;
-    --surface: rgba(20,29,50,.72);
-    --surface-solid:#131c33;
-    --surface-2:#1a2440;
-    --ink:#eef2fb;
-    --ink-dim:#8791ab;
-    --ink-faint:#5b6584;
+    --bg:#0d0b09;
+    --surface-solid:#1a1611;
+    --surface-2:#221c16;
+    --ink:#f3efe8;
+    --ink-dim:#9a9086;
+    --ink-faint:#635b52;
     --line: rgba(255,255,255,.08);
     --line-strong: rgba(255,255,255,.14);
-    --teal:#3fe0b0;
-    --gold:#f2ac3d;
-    --blue:#5aa8f7;
-    --violet:#b58bf0;
-    --shadow: 0 24px 60px -24px rgba(0,0,0,.65);
+    --accent:#e08a2b;
+    --accent-ink:#1a0f02;
+    --shadow: 0 24px 60px -24px rgba(0,0,0,.7);
   }
   *{ box-sizing:border-box; }
   html,body{ margin:0; background:var(--bg); }
@@ -36,7 +33,7 @@
     -webkit-font-smoothing:antialiased;
   }
   .mono{ font-family:"IBM Plex Mono","IBM Plex Sans",monospace; font-variant-numeric:tabular-nums; }
-  .display{ font-family:"Manrope","IBM Plex Sans",sans-serif; font-weight:800; letter-spacing:-.01em; }
+  .display{ font-family:"Big Shoulders Display","IBM Plex Sans",sans-serif; font-weight:700; letter-spacing:.01em; text-transform:uppercase; }
 
   .app{ max-width:1180px; margin:0 auto; padding:22px 20px 56px; }
 
@@ -46,24 +43,22 @@
   }
   .topbar .mark{ display:flex; align-items:center; gap:9px; }
   .topbar .mark .dot{
-    width:9px; height:9px; border-radius:50%; background:var(--teal);
-    box-shadow:0 0 0 4px rgba(63,224,176,.16);
+    width:8px; height:8px; background:var(--accent);
   }
-  .topbar .mark span{ font-family:"Manrope",sans-serif; font-weight:700; font-size:14px; }
+  .topbar .mark span{ font-family:"IBM Plex Sans",sans-serif; font-weight:600; font-size:14px; letter-spacing:.01em; }
   .demo-pill{
     font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.06em;
-    padding:4px 9px; border-radius:100px; border:1px solid rgba(242,172,61,.4);
-    color:var(--gold); background:rgba(242,172,61,.08); white-space:nowrap;
+    padding:4px 9px; border:1px solid rgba(224,138,43,.4);
+    color:var(--accent); background:rgba(224,138,43,.08); white-space:nowrap;
   }
 
   .hero{ max-width:640px; margin-bottom:22px; }
   .hero .eyebrow{
-    display:flex; align-items:center; gap:7px;
-    font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--teal);
-    font-weight:600; margin-bottom:12px;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint);
+    margin-bottom:10px;
   }
-  .hero h1{ font-size:clamp(28px,4.4vw,40px); line-height:1.15; margin:0 0 12px; }
-  .hero h1 .hl{ color:var(--teal); }
+  .hero h1{ font-size:clamp(32px,5vw,46px); line-height:1; margin:0 0 12px; }
   .hero p{ color:var(--ink-dim); font-size:14.5px; line-height:1.7; margin:0 0 10px; max-width:52ch; }
   .hero .quick{ font-size:12.5px; color:var(--ink-faint); display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
   .hero .quick b{ color:var(--ink); font-weight:600; }
@@ -71,17 +66,17 @@
 
   /* map */
   .map-card{
-    position:relative; border-radius:22px; border:1px solid var(--line-strong);
+    position:relative; border-radius:6px; border:1px solid var(--line-strong);
     box-shadow:var(--shadow); overflow:hidden; margin-bottom:20px;
-    height:min(72vh, 620px); background:#000814;
+    height:min(72vh, 620px); background:#04030a;
   }
   #map{ width:100%; height:100%; cursor:grab; }
   #map:active{ cursor:grabbing; }
 
   .pin-badge{
     display:flex; align-items:center; justify-content:center; border-radius:50%;
-    color:#0a0f1a; font-family:"IBM Plex Mono",monospace; font-weight:700;
-    border:2px solid rgba(8,12,22,.55); cursor:pointer;
+    color:var(--accent-ink); font-family:"IBM Plex Mono",monospace; font-weight:700;
+    border:2px solid rgba(13,11,9,.55); cursor:pointer;
     transition: transform .15s ease, box-shadow .15s ease;
     transform:translate(-50%,-50%);
     /* globe.gl's HTML-marker layer sits on a wrapper with pointer-events:none
@@ -95,6 +90,14 @@
     z-index:1000 !important;
   }
 
+  .region-label{
+    transform:translate(-50%,-50%);
+    font-family:"IBM Plex Sans","PingFang TC","Noto Sans TC",sans-serif;
+    font-size:12px; letter-spacing:.04em; color:rgba(255,255,255,.4);
+    text-shadow:0 1px 3px rgba(0,0,0,.8);
+    pointer-events:none; white-space:nowrap;
+  }
+
   .reset-float{
     top:14px; right:14px; z-index:600; padding:0; pointer-events:auto;
   }
@@ -105,9 +108,9 @@
   .reset-float button:hover{ background:rgba(255,255,255,.06); }
 
   .float-card{
-    position:absolute; background:var(--surface); backdrop-filter:blur(14px) saturate(140%);
-    border:1px solid var(--line-strong); border-radius:14px; box-shadow:var(--shadow);
-    z-index:600; pointer-events:none;
+    position:absolute; background:rgba(13,11,9,.88);
+    border:1px solid var(--line-strong); border-top:2px solid var(--accent);
+    box-shadow:var(--shadow); z-index:600; pointer-events:none;
   }
   .stat-float{ top:14px; left:14px; padding:12px 16px; display:flex; gap:18px; }
   .stat-float .s{ display:flex; flex-direction:column; }
@@ -127,7 +130,7 @@
   @media (max-width:820px){ .layout{ grid-template-columns:1fr; } }
 
   .panel{
-    background:var(--surface-solid); border:1px solid var(--line-strong); border-radius:18px;
+    background:var(--surface-solid); border:1px solid var(--line-strong); border-radius:6px;
     box-shadow:var(--shadow); overflow:hidden;
   }
   .panel-head{ padding:14px 16px; border-bottom:1px solid var(--line); font-size:12.5px; color:var(--ink-dim); }
@@ -138,8 +141,8 @@
   }
   .list-row:last-child{ border-bottom:none; }
   .list-row:hover{ background:rgba(255,255,255,.03); }
-  .list-row.active{ background:rgba(63,224,176,.08); }
-  .list-row .dot{ width:9px; height:9px; border-radius:50%; flex:none; }
+  .list-row.active{ background:rgba(224,138,43,.10); border-left:2px solid var(--accent); }
+  .list-row .dot{ width:8px; height:8px; border-radius:50%; flex:none; }
   .list-row .meta{ flex:1; min-width:0; }
   .list-row .meta .name{ font-size:13.5px; font-weight:600; }
   .list-row .meta .sub{ font-size:11px; color:var(--ink-faint); margin-top:1px; }
@@ -148,20 +151,19 @@
 
   .detail{ padding:18px; }
   .detail .empty{ color:var(--ink-faint); font-size:13px; padding:48px 16px; text-align:center; line-height:1.8; }
-  .aerial{ aspect-ratio:16/9; border-radius:14px; position:relative; overflow:hidden; border:1px solid var(--line-strong); }
+  .aerial{ aspect-ratio:16/9; border-radius:4px; position:relative; overflow:hidden; border:1px solid var(--line-strong); }
   .aerial .grid{ position:absolute; inset:0; }
   .aerial .shade{ position:absolute; inset:0; background:linear-gradient(180deg, transparent 40%, rgba(6,9,16,.75) 100%); }
   .aerial .tag{
     position:absolute; left:10px; bottom:10px; font-family:"IBM Plex Mono",monospace; font-size:10px;
-    background:rgba(8,12,22,.55); border:1px solid rgba(255,255,255,.12); color:#fff; padding:4px 8px;
-    border-radius:100px; backdrop-filter:blur(6px);
+    background:rgba(8,12,22,.7); border:1px solid rgba(255,255,255,.12); color:#fff; padding:4px 8px;
   }
-  .detail h3{ font-family:"Manrope",sans-serif; font-weight:800; font-size:21px; margin:14px 0 2px; }
+  .detail h3{ font-family:"Big Shoulders Display",sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:.01em; font-size:24px; margin:14px 0 2px; }
   .detail .county{ font-size:12px; color:var(--ink-faint); margin-bottom:14px; }
   .badge-line{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
-  .type-badge{ font-size:11px; padding:4px 10px; border-radius:100px; border:1px solid var(--line-strong); color:var(--ink-dim); }
+  .type-badge{ font-size:11px; padding:4px 10px; border:1px solid var(--line-strong); color:var(--ink-dim); }
   .stat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
-  .stat{ background:var(--surface-2); border-radius:12px; padding:10px 12px; }
+  .stat{ background:var(--surface-2); border-radius:4px; padding:10px 12px; }
   .stat .label{ font-size:10.5px; color:var(--ink-faint); }
   .stat .value{ font-family:"IBM Plex Mono",monospace; font-weight:700; font-size:16.5px; margin-top:2px; }
   .stat .value small{ font-size:11px; font-weight:400; color:var(--ink-dim); }
@@ -179,9 +181,9 @@
   </div>
 
   <div class="hero">
-    <div class="eyebrow">◐ 互動地圖</div>
-    <h1 class="display">看見我們在全台灣的<span class="hl">案場版圖</span></h1>
-    <p>可旋轉、縮放的 3D 地球。拖曳轉動地球，點選任一案場圖釘，查看裝置容量、年發電量與現場畫面。</p>
+    <div class="eyebrow">全台案場</div>
+    <h1 class="display">案場總覽</h1>
+    <p>拖曳旋轉、滾輪縮放。點選圖釘查看容量、發電量與現場畫面。</p>
     <div class="quick" id="quickStats"></div>
   </div>
 
@@ -203,7 +205,7 @@
     </div>
   </div>
 
-  <footer class="foot">示意用 Demo · 地球紋理素材：NASA Visible Earth（<a href="https://github.com/vasturiano/three-globe" target="_blank" rel="noopener" style="color:inherit">three-globe</a> 範例資源）· 案場數據與現場畫面皆為範例，正式版將替換為實際案場資訊</footer>
+  <footer class="foot">示意用 Demo · 地球影像：NASA Earth Observatory（夜間燈光）· 國界資料：Natural Earth · 案場數據與現場畫面皆為範例，正式版將替換為實際案場資訊</footer>
 </div>
 
 <script>
@@ -211,9 +213,9 @@
   'use strict';
 
   var TYPES = {
-    ground: { label:'地面型', hex:'#f2ac3d' },
-    water:  { label:'水面型', hex:'#5aa8f7' },
-    roof:   { label:'屋頂型', hex:'#b58bf0' }
+    ground: { label:'地面型', hex:'#e08a2b' },
+    water:  { label:'水面型', hex:'#5f7f99' },
+    roof:   { label:'屋頂型', hex:'#93789c' }
   };
 
   var sites = [
@@ -256,7 +258,7 @@
 
   var markersById = {};
 
-  function buildBadge(s){
+  function buildSiteBadge(s){
     var t = TYPES[s.type];
     var size = badgeSize(s);
     var el = document.createElement('div');
@@ -274,24 +276,61 @@
     return el;
   }
 
-  // NOTE: .htmlElementsData(sites) must be the LAST call in this chain. globe.gl reads
+  function buildRegionLabel(r){
+    var el = document.createElement('div');
+    el.className = 'region-label';
+    el.textContent = r.text;
+    return el;
+  }
+
+  // reference labels for nearby countries/seas — the globe otherwise reads as an
+  // unlabelled blob at a glance, even once real coastlines are visible.
+  // Rendered through the same HTML-marker layer as the site badges (not globe.gl's
+  // separate .labelsData layer — that one draws via canvas sprite text with a font
+  // that has no CJK glyphs, so Chinese text there silently renders as "???").
+  var REGION_LABELS = [
+    { kind:'region', text:'中國', lat:30,   lon:111   },
+    { kind:'region', text:'日本', lat:36.5, lon:138.5 },
+    { kind:'region', text:'韓國', lat:36.2, lon:127.8 },
+    { kind:'region', text:'菲律賓', lat:12.5, lon:122.5 },
+    { kind:'region', text:'太平洋', lat:20,   lon:138   }
+  ];
+
+  var HTML_MARKERS = sites.concat(REGION_LABELS);
+
+  function buildMarker(d){
+    return d.kind === 'region' ? buildRegionLabel(d) : buildSiteBadge(d);
+  }
+
+  // NOTE: .htmlElementsData(...) must be the LAST call in this chain. globe.gl reads
   // the current htmlLat/htmlLng/htmlElement accessors at the moment the data is set —
   // setting data before the accessors silently renders zero markers (no error thrown).
   var mapEl = document.getElementById('map');
   var world = Globe()(mapEl)
-    .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg')
+    .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
     .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
     .backgroundColor('#00000000')
     .showAtmosphere(true)
-    .atmosphereColor('#3fe0b0')
+    .atmosphereColor('#f2c98a')
     .atmosphereAltitude(0.18)
     .width(mapEl.clientWidth)
     .height(mapEl.clientHeight)
+    .polygonsData([])
+    .polygonCapColor(function(){ return 'rgba(0,0,0,0)'; })
+    .polygonSideColor(function(){ return 'rgba(0,0,0,0)'; })
+    .polygonStrokeColor(function(){ return 'rgba(255,255,255,.22)'; })
+    .polygonAltitude(0.002)
     .htmlLat('lat')
     .htmlLng('lon')
     .htmlAltitude(0.01)
-    .htmlElement(buildBadge)
-    .htmlElementsData(sites);
+    .htmlElement(buildMarker)
+    .htmlElementsData(HTML_MARKERS);
+
+  // country borders load separately (~480KB) so the globe itself isn't blocked on it
+  fetch('https://unpkg.com/three-globe/example/country-polygons/ne_110m_admin_0_countries.geojson')
+    .then(function(res){ return res.json(); })
+    .then(function(countries){ world.polygonsData(countries.features); })
+    .catch(function(){ /* borders are decorative — globe still works without them */ });
 
   // opening shot: start pulled back so the whole globe is visible, then fly in to Taiwan
   world.pointOfView({ lat:15, lng:95, altitude:2.6 }, 0);
@@ -347,7 +386,7 @@
     world.pointOfView({ lat:s.lat, lng:s.lon, altitude:0.4 }, 900);
 
     var panel = document.getElementById('detailPanel');
-    panel.style.boxShadow = '0 0 0 2px var(--teal), var(--shadow)';
+    panel.style.boxShadow = '0 0 0 2px var(--accent), var(--shadow)';
     setTimeout(function(){ panel.style.boxShadow = ''; }, 900);
     if (window.innerWidth < 860) {
       panel.scrollIntoView({ behavior:'smooth', block:'start' });
@@ -359,7 +398,7 @@
     var households = Math.round(s.annual / HOUSEHOLD_MWH);
     var co2 = Math.round(s.annual * GRID_FACTOR);
     detailEl.innerHTML =
-      '<div class="aerial" style="background:linear-gradient(160deg, ' + t.hex + '22, #0a1424 70%)">' +
+      '<div class="aerial" style="background:linear-gradient(160deg, ' + t.hex + '22, #0d0b09 70%)">' +
         '<div class="grid" style="background-image:repeating-linear-gradient(100deg, ' + t.hex + '55 0 12px, ' + t.hex + '22 12px 14px), repeating-linear-gradient(10deg, transparent 0 20px, rgba(0,0,0,.28) 20px 22px); background-blend-mode:screen;"></div>' +
         '<div class="shade"></div>' +
         '<span class="tag">示意畫面 · 待替換實拍</span>' +
