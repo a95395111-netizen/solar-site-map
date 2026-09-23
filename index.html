@@ -93,8 +93,8 @@
   .region-label{
     transform:translate(-50%,-50%);
     font-family:"IBM Plex Sans","PingFang TC","Noto Sans TC",sans-serif;
-    font-size:12px; letter-spacing:.04em; color:rgba(255,255,255,.4);
-    text-shadow:0 1px 3px rgba(0,0,0,.8);
+    font-size:12px; letter-spacing:.04em; color:rgba(255,255,255,.85);
+    text-shadow:0 1px 4px rgba(0,0,0,.9), 0 0 10px rgba(0,0,0,.6);
     pointer-events:none; white-space:nowrap;
   }
 
@@ -251,6 +251,7 @@
 
   // ---- 3D globe ----
   var TAIWAN_VIEW = { lat:23.6, lng:120.9, altitude:0.55 };
+  var MIN_ALTITUDE = 0.45; // closest the globe ever zooms — see controls.minDistance below
 
   var maxCap = Math.max.apply(null, sites.map(function(s){ return s.capacity; }));
   var MIN_BADGE_PX = 30, MAX_BADGE_PX = 54;
@@ -307,7 +308,11 @@
   // setting data before the accessors silently renders zero markers (no error thrown).
   var mapEl = document.getElementById('map');
   var world = Globe()(mapEl)
-    .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
+    // earth-night.jpg (city-light texture) looked wrong here: it's an emissive-style
+    // map, but three-globe lights the globe like a normal photo (Phong + directional
+    // light), so the night lights got lit/shaded unevenly instead of just glowing.
+    // earth-blue-marble.jpg is a real diffuse photo texture, built for this lighting.
+    .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
     .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
     .backgroundColor('#00000000')
     .showAtmosphere(true)
@@ -318,8 +323,8 @@
     .polygonsData([])
     .polygonCapColor(function(){ return 'rgba(0,0,0,0)'; })
     .polygonSideColor(function(){ return 'rgba(0,0,0,0)'; })
-    .polygonStrokeColor(function(){ return 'rgba(255,255,255,.22)'; })
-    .polygonAltitude(0.002)
+    .polygonStrokeColor(function(){ return 'rgba(255,244,224,.4)'; })
+    .polygonAltitude(0.006)
     .htmlLat('lat')
     .htmlLng('lon')
     .htmlAltitude(0.01)
@@ -338,6 +343,10 @@
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.6;
   controls.enableDamping = true;
+  // the globe is one fixed-resolution world texture, not map tiles that sharpen on
+  // zoom — past this distance it just magnifies the same pixels and looks blurry,
+  // so stop scroll-zoom here rather than let people zoom into a smear
+  controls.minDistance = 100 * (1 + MIN_ALTITUDE);
 
   setTimeout(function(){
     world.pointOfView(TAIWAN_VIEW, 2600);
@@ -383,7 +392,7 @@
 
     renderDetail(s);
     controls.autoRotate = false;
-    world.pointOfView({ lat:s.lat, lng:s.lon, altitude:0.4 }, 900);
+    world.pointOfView({ lat:s.lat, lng:s.lon, altitude:MIN_ALTITUDE }, 900);
 
     var panel = document.getElementById('detailPanel');
     panel.style.boxShadow = '0 0 0 2px var(--accent), var(--shadow)';
