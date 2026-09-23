@@ -150,7 +150,7 @@
   .list-row .cap b{ color:var(--ink); font-weight:700; }
 
   .detail{ padding:18px; }
-  .detail .empty{ color:var(--ink-faint); font-size:13px; padding:48px 16px; text-align:center; line-height:1.8; }
+  .empty{ color:var(--ink-faint); font-size:13px; padding:48px 16px; text-align:center; line-height:1.8; }
   .aerial{ aspect-ratio:16/9; border-radius:4px; position:relative; overflow:hidden; border:1px solid var(--line-strong); }
   .aerial .grid{ position:absolute; inset:0; }
   .aerial .shade{ position:absolute; inset:0; background:linear-gradient(180deg, transparent 40%, rgba(6,9,16,.75) 100%); }
@@ -218,13 +218,10 @@
     roof:   { label:'屋頂型', hex:'#93789c' }
   };
 
+  // fill in real sites here — one object per case, same shape as this example:
+  // { id:'unique-id', name:'案場名稱', county:'行政區', type:'ground'|'water'|'roof',
+  //   year:2024, capacity:18 /* MW */, annual:21000 /* MWh */, lat:23.87, lon:120.10 }
   var sites = [
-    { id:'changhua-fangyuan', name:'彰化芳苑案場', county:'彰化縣芳苑鄉', type:'ground', year:2023, capacity:18, annual:21000, lat:23.87, lon:120.10 },
-    { id:'yunlin-taixi',      name:'雲林台西案場', county:'雲林縣台西鄉', type:'ground', year:2020, capacity:28, annual:33000, lat:23.70, lon:120.20 },
-    { id:'chiayi-budai',      name:'嘉義布袋案場', county:'嘉義縣布袋鎮', type:'ground', year:2022, capacity:35, annual:42000, lat:23.37, lon:120.16 },
-    { id:'tainan-qigu',       name:'台南七股案場', county:'台南市七股區', type:'water',  year:2021, capacity:50, annual:58000, lat:23.14, lon:120.10 },
-    { id:'kaohsiung-yongan',  name:'高雄永安案場', county:'高雄市永安區', type:'roof',   year:2023, capacity:12, annual:14500, lat:22.93, lon:120.26 },
-    { id:'pingtung-linbian',  name:'屏東林邊案場', county:'屏東縣林邊鄉', type:'water',  year:2022, capacity:20, annual:23000, lat:22.45, lon:120.50 }
   ].sort(function(a,b){ return b.capacity - a.capacity; });
 
   var HOUSEHOLD_MWH = 3.0;   // 台灣家庭年均用電概估 (MWh)
@@ -250,10 +247,10 @@
     }).join('');
 
   // ---- 3D globe ----
-  var TAIWAN_VIEW = { lat:23.6, lng:120.9, altitude:0.55 };
+  var TAIWAN_VIEW = { lat:23.7, lng:121.0, altitude:0.45 };
   var MIN_ALTITUDE = 0.12; // closest the globe ever zooms — see controls.minDistance below
 
-  var maxCap = Math.max.apply(null, sites.map(function(s){ return s.capacity; }));
+  var maxCap = sites.length ? Math.max.apply(null, sites.map(function(s){ return s.capacity; })) : 1;
   var MIN_BADGE_PX = 30, MAX_BADGE_PX = 54;
   function badgeSize(s){ return Math.round(MIN_BADGE_PX + (s.capacity/maxCap) * (MAX_BADGE_PX-MIN_BADGE_PX)); }
 
@@ -364,14 +361,14 @@
 
   // ---- list ----
   var listView = document.getElementById('listView');
-  listView.innerHTML = sites.map(function(s){
+  listView.innerHTML = sites.length ? sites.map(function(s){
     var t = TYPES[s.type];
     return '<div class="list-row" data-id="' + s.id + '">' +
       '<span class="dot" style="background:' + t.hex + '"></span>' +
       '<div class="meta"><div class="name">' + s.name + '</div><div class="sub">' + s.county + ' · ' + t.label + '</div></div>' +
       '<div class="cap"><b>' + s.capacity + '</b> MW</div>' +
     '</div>';
-  }).join('');
+  }).join('') : '<div class="empty">尚未加入案場資料</div>';
   listView.querySelectorAll('.list-row').forEach(function(row){
     row.addEventListener('click', function(){ selectSite(row.getAttribute('data-id')); });
   });
