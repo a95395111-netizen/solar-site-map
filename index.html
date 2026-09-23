@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>首美案場地圖</title>
+
+<script src="https://unpkg.com/globe.gl@2.46.2/dist/globe.gl.min.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#080c16;
+    --surface: rgba(20,29,50,.72);
+    --surface-solid:#131c33;
+    --surface-2:#1a2440;
+    --ink:#eef2fb;
+    --ink-dim:#8791ab;
+    --ink-faint:#5b6584;
+    --line: rgba(255,255,255,.08);
+    --line-strong: rgba(255,255,255,.14);
+    --teal:#3fe0b0;
+    --gold:#f2ac3d;
+    --blue:#5aa8f7;
+    --violet:#b58bf0;
+    --shadow: 0 24px 60px -24px rgba(0,0,0,.65);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; background:var(--bg); }
+  body{
+    color:var(--ink);
+    font-family:"IBM Plex Sans","PingFang TC","Noto Sans TC",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{ font-family:"IBM Plex Mono","IBM Plex Sans",monospace; font-variant-numeric:tabular-nums; }
+  .display{ font-family:"Manrope","IBM Plex Sans",sans-serif; font-weight:800; letter-spacing:-.01em; }
+
+  .app{ max-width:1180px; margin:0 auto; padding:22px 20px 56px; }
+
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding-bottom:18px; margin-bottom:26px; border-bottom:1px solid var(--line);
+  }
+  .topbar .mark{ display:flex; align-items:center; gap:9px; }
+  .topbar .mark .dot{
+    width:9px; height:9px; border-radius:50%; background:var(--teal);
+    box-shadow:0 0 0 4px rgba(63,224,176,.16);
+  }
+  .topbar .mark span{ font-family:"Manrope",sans-serif; font-weight:700; font-size:14px; }
+  .demo-pill{
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.06em;
+    padding:4px 9px; border-radius:100px; border:1px solid rgba(242,172,61,.4);
+    color:var(--gold); background:rgba(242,172,61,.08); white-space:nowrap;
+  }
+
+  .hero{ max-width:640px; margin-bottom:22px; }
+  .hero .eyebrow{
+    display:flex; align-items:center; gap:7px;
+    font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--teal);
+    font-weight:600; margin-bottom:12px;
+  }
+  .hero h1{ font-size:clamp(28px,4.4vw,40px); line-height:1.15; margin:0 0 12px; }
+  .hero h1 .hl{ color:var(--teal); }
+  .hero p{ color:var(--ink-dim); font-size:14.5px; line-height:1.7; margin:0 0 10px; max-width:52ch; }
+  .hero .quick{ font-size:12.5px; color:var(--ink-faint); display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .hero .quick b{ color:var(--ink); font-weight:600; }
+  .hero .quick .sep{ opacity:.5; }
+
+  /* map */
+  .map-card{
+    position:relative; border-radius:22px; border:1px solid var(--line-strong);
+    box-shadow:var(--shadow); overflow:hidden; margin-bottom:20px;
+    height:min(72vh, 620px); background:#000814;
+  }
+  #map{ width:100%; height:100%; cursor:grab; }
+  #map:active{ cursor:grabbing; }
+
+  .pin-badge{
+    display:flex; align-items:center; justify-content:center; border-radius:50%;
+    color:#0a0f1a; font-family:"IBM Plex Mono",monospace; font-weight:700;
+    border:2px solid rgba(8,12,22,.55); cursor:pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+    transform:translate(-50%,-50%);
+    /* globe.gl's HTML-marker layer sits on a wrapper with pointer-events:none
+       (so it doesn't block dragging the globe) — badges must opt back in or clicks pass through */
+    pointer-events:auto;
+  }
+  .pin-badge:hover{ transform:translate(-50%,-50%) scale(1.08); }
+  .pin-badge.selected{
+    transform:translate(-50%,-50%) scale(1.2);
+    box-shadow:0 0 0 3px #fff, 0 0 0 5px var(--bg), 0 0 18px var(--pin-color, currentColor);
+    z-index:1000 !important;
+  }
+
+  .reset-float{
+    top:14px; right:14px; z-index:600; padding:0; pointer-events:auto;
+  }
+  .reset-float button{
+    width:34px; height:34px; background:none; border:none; color:var(--ink);
+    font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .reset-float button:hover{ background:rgba(255,255,255,.06); }
+
+  .float-card{
+    position:absolute; background:var(--surface); backdrop-filter:blur(14px) saturate(140%);
+    border:1px solid var(--line-strong); border-radius:14px; box-shadow:var(--shadow);
+    z-index:600; pointer-events:none;
+  }
+  .stat-float{ top:14px; left:14px; padding:12px 16px; display:flex; gap:18px; }
+  .stat-float .s{ display:flex; flex-direction:column; }
+  .stat-float .s .l{ font-size:10px; color:var(--ink-faint); letter-spacing:.04em; }
+  .stat-float .s .v{ font-family:"IBM Plex Mono",monospace; font-weight:700; font-size:16px; margin-top:1px; }
+  .stat-float .s .v small{ font-size:10.5px; font-weight:400; color:var(--ink-dim); }
+
+  .legend-float{
+    bottom:14px; left:14px; padding:10px 14px; display:flex; flex-direction:column; gap:7px;
+  }
+  .legend-float .lt{ font-size:10px; color:var(--ink-faint); letter-spacing:.06em; text-transform:uppercase; margin-bottom:2px; }
+  .legend-float .item{ display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--ink-dim); }
+  .legend-float .sw{ width:9px; height:9px; border-radius:50%; flex:none; }
+
+  /* lower layout */
+  .layout{ display:grid; grid-template-columns:.85fr 1.15fr; gap:16px; align-items:start; }
+  @media (max-width:820px){ .layout{ grid-template-columns:1fr; } }
+
+  .panel{
+    background:var(--surface-solid); border:1px solid var(--line-strong); border-radius:18px;
+    box-shadow:var(--shadow); overflow:hidden;
+  }
+  .panel-head{ padding:14px 16px; border-bottom:1px solid var(--line); font-size:12.5px; color:var(--ink-dim); }
+  .panel-head b{ color:var(--ink); font-weight:600; }
+
+  .list-row{
+    display:flex; align-items:center; gap:11px; padding:13px 16px; border-bottom:1px solid var(--line); cursor:pointer;
+  }
+  .list-row:last-child{ border-bottom:none; }
+  .list-row:hover{ background:rgba(255,255,255,.03); }
+  .list-row.active{ background:rgba(63,224,176,.08); }
+  .list-row .dot{ width:9px; height:9px; border-radius:50%; flex:none; }
+  .list-row .meta{ flex:1; min-width:0; }
+  .list-row .meta .name{ font-size:13.5px; font-weight:600; }
+  .list-row .meta .sub{ font-size:11px; color:var(--ink-faint); margin-top:1px; }
+  .list-row .cap{ font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--ink-dim); text-align:right; }
+  .list-row .cap b{ color:var(--ink); font-weight:700; }
+
+  .detail{ padding:18px; }
+  .detail .empty{ color:var(--ink-faint); font-size:13px; padding:48px 16px; text-align:center; line-height:1.8; }
+  .aerial{ aspect-ratio:16/9; border-radius:14px; position:relative; overflow:hidden; border:1px solid var(--line-strong); }
+  .aerial .grid{ position:absolute; inset:0; }
+  .aerial .shade{ position:absolute; inset:0; background:linear-gradient(180deg, transparent 40%, rgba(6,9,16,.75) 100%); }
+  .aerial .tag{
+    position:absolute; left:10px; bottom:10px; font-family:"IBM Plex Mono",monospace; font-size:10px;
+    background:rgba(8,12,22,.55); border:1px solid rgba(255,255,255,.12); color:#fff; padding:4px 8px;
+    border-radius:100px; backdrop-filter:blur(6px);
+  }
+  .detail h3{ font-family:"Manrope",sans-serif; font-weight:800; font-size:21px; margin:14px 0 2px; }
+  .detail .county{ font-size:12px; color:var(--ink-faint); margin-bottom:14px; }
+  .badge-line{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+  .type-badge{ font-size:11px; padding:4px 10px; border-radius:100px; border:1px solid var(--line-strong); color:var(--ink-dim); }
+  .stat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+  .stat{ background:var(--surface-2); border-radius:12px; padding:10px 12px; }
+  .stat .label{ font-size:10.5px; color:var(--ink-faint); }
+  .stat .value{ font-family:"IBM Plex Mono",monospace; font-weight:700; font-size:16.5px; margin-top:2px; }
+  .stat .value small{ font-size:11px; font-weight:400; color:var(--ink-dim); }
+  .note{ font-size:11.5px; color:var(--ink-faint); line-height:1.6; border-top:1px dashed var(--line); padding-top:10px; margin-top:2px; }
+
+  footer.foot{ margin-top:26px; font-size:11px; color:var(--ink-faint); text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="mark"><span class="dot"></span><span>首美能源</span></div>
+    <span class="demo-pill">DEMO · 資料為示範用</span>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow">◐ 互動地圖</div>
+    <h1 class="display">看見我們在全台灣的<span class="hl">案場版圖</span></h1>
+    <p>可旋轉、縮放的 3D 地球。拖曳轉動地球，點選任一案場圖釘，查看裝置容量、年發電量與現場畫面。</p>
+    <div class="quick" id="quickStats"></div>
+  </div>
+
+  <div class="map-card">
+    <div id="map"></div>
+    <div class="float-card stat-float" id="statFloat"></div>
+    <div class="float-card legend-float" id="legendFloat"></div>
+    <div class="float-card reset-float"><button id="resetView" title="回到台灣">⟲</button></div>
+  </div>
+
+  <div class="layout">
+    <div class="panel">
+      <div class="panel-head"><b>案場清單</b> · 依容量排序</div>
+      <div id="listView"></div>
+    </div>
+    <div class="panel" id="detailPanel">
+      <div class="panel-head"><b>案場詳情</b></div>
+      <div class="detail" id="detailView"></div>
+    </div>
+  </div>
+
+  <footer class="foot">示意用 Demo · 地球紋理素材：NASA Visible Earth（<a href="https://github.com/vasturiano/three-globe" target="_blank" rel="noopener" style="color:inherit">three-globe</a> 範例資源）· 案場數據與現場畫面皆為範例，正式版將替換為實際案場資訊</footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var TYPES = {
+    ground: { label:'地面型', hex:'#f2ac3d' },
+    water:  { label:'水面型', hex:'#5aa8f7' },
+    roof:   { label:'屋頂型', hex:'#b58bf0' }
+  };
+
+  var sites = [
+    { id:'changhua-fangyuan', name:'彰化芳苑案場', county:'彰化縣芳苑鄉', type:'ground', year:2023, capacity:18, annual:21000, lat:23.87, lon:120.10 },
+    { id:'yunlin-taixi',      name:'雲林台西案場', county:'雲林縣台西鄉', type:'ground', year:2020, capacity:28, annual:33000, lat:23.70, lon:120.20 },
+    { id:'chiayi-budai',      name:'嘉義布袋案場', county:'嘉義縣布袋鎮', type:'ground', year:2022, capacity:35, annual:42000, lat:23.37, lon:120.16 },
+    { id:'tainan-qigu',       name:'台南七股案場', county:'台南市七股區', type:'water',  year:2021, capacity:50, annual:58000, lat:23.14, lon:120.10 },
+    { id:'kaohsiung-yongan',  name:'高雄永安案場', county:'高雄市永安區', type:'roof',   year:2023, capacity:12, annual:14500, lat:22.93, lon:120.26 },
+    { id:'pingtung-linbian',  name:'屏東林邊案場', county:'屏東縣林邊鄉', type:'water',  year:2022, capacity:20, annual:23000, lat:22.45, lon:120.50 }
+  ].sort(function(a,b){ return b.capacity - a.capacity; });
+
+  var HOUSEHOLD_MWH = 3.0;   // 台灣家庭年均用電概估 (MWh)
+  var GRID_FACTOR = 0.495;   // 台灣電網排碳係數概估 (tCO2/MWh)
+
+  var totalCapacity = sites.reduce(function(s,d){ return s+d.capacity; }, 0);
+  var totalAnnual = sites.reduce(function(s,d){ return s+d.annual; }, 0);
+
+  document.getElementById('quickStats').innerHTML =
+    '<b>' + sites.length + '</b> 案場<span class="sep">·</span>' +
+    '<b>' + totalCapacity + '</b> MWp<span class="sep">·</span>' +
+    '<b>' + totalAnnual.toLocaleString() + '</b> MWh/年';
+
+  document.getElementById('statFloat').innerHTML =
+    '<div class="s"><div class="l">案場數</div><div class="v mono">' + sites.length + ' <small>sites</small></div></div>' +
+    '<div class="s"><div class="l">總裝置容量</div><div class="v mono">' + totalCapacity + ' <small>MWp</small></div></div>';
+
+  document.getElementById('legendFloat').innerHTML =
+    '<div class="lt">案場類型</div>' +
+    Object.keys(TYPES).map(function(key){
+      var t = TYPES[key];
+      return '<div class="item"><span class="sw" style="background:' + t.hex + '"></span>' + t.label + '</div>';
+    }).join('');
+
+  // ---- 3D globe ----
+  var TAIWAN_VIEW = { lat:23.6, lng:120.9, altitude:0.55 };
+
+  var maxCap = Math.max.apply(null, sites.map(function(s){ return s.capacity; }));
+  var MIN_BADGE_PX = 30, MAX_BADGE_PX = 54;
+  function badgeSize(s){ return Math.round(MIN_BADGE_PX + (s.capacity/maxCap) * (MAX_BADGE_PX-MIN_BADGE_PX)); }
+
+  var markersById = {};
+
+  function buildBadge(s){
+    var t = TYPES[s.type];
+    var size = badgeSize(s);
+    var el = document.createElement('div');
+    el.className = 'pin-badge mono';
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    el.style.fontSize = Math.max(10, size*0.34) + 'px';
+    el.style.background = t.hex;
+    el.style.setProperty('--pin-color', t.hex);
+    el.textContent = s.capacity;
+    el.title = s.name + ' · ' + t.label + ' · ' + s.capacity + ' MWp';
+    // stopPropagation so the click doesn't also register as a drag-start on the globe underneath
+    el.addEventListener('click', function(ev){ ev.stopPropagation(); selectSite(s.id); });
+    markersById[s.id] = el;
+    return el;
+  }
+
+  // NOTE: .htmlElementsData(sites) must be the LAST call in this chain. globe.gl reads
+  // the current htmlLat/htmlLng/htmlElement accessors at the moment the data is set —
+  // setting data before the accessors silently renders zero markers (no error thrown).
+  var mapEl = document.getElementById('map');
+  var world = Globe()(mapEl)
+    .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg')
+    .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
+    .backgroundColor('#00000000')
+    .showAtmosphere(true)
+    .atmosphereColor('#3fe0b0')
+    .atmosphereAltitude(0.18)
+    .width(mapEl.clientWidth)
+    .height(mapEl.clientHeight)
+    .htmlLat('lat')
+    .htmlLng('lon')
+    .htmlAltitude(0.01)
+    .htmlElement(buildBadge)
+    .htmlElementsData(sites);
+
+  // opening shot: start pulled back so the whole globe is visible, then fly in to Taiwan
+  world.pointOfView({ lat:15, lng:95, altitude:2.6 }, 0);
+  var controls = world.controls();
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.6;
+  controls.enableDamping = true;
+
+  setTimeout(function(){
+    world.pointOfView(TAIWAN_VIEW, 2600);
+    setTimeout(function(){ controls.autoRotate = false; }, 2700);
+  }, 900);
+
+  window.addEventListener('resize', function(){
+    world.width(mapEl.clientWidth).height(mapEl.clientHeight);
+  });
+
+  document.getElementById('resetView').addEventListener('click', function(){
+    controls.autoRotate = false;
+    world.pointOfView(TAIWAN_VIEW, 1200);
+  });
+
+  // ---- list ----
+  var listView = document.getElementById('listView');
+  listView.innerHTML = sites.map(function(s){
+    var t = TYPES[s.type];
+    return '<div class="list-row" data-id="' + s.id + '">' +
+      '<span class="dot" style="background:' + t.hex + '"></span>' +
+      '<div class="meta"><div class="name">' + s.name + '</div><div class="sub">' + s.county + ' · ' + t.label + '</div></div>' +
+      '<div class="cap"><b>' + s.capacity + '</b> MW</div>' +
+    '</div>';
+  }).join('');
+  listView.querySelectorAll('.list-row').forEach(function(row){
+    row.addEventListener('click', function(){ selectSite(row.getAttribute('data-id')); });
+  });
+
+  // ---- selection + detail ----
+  var detailEl = document.getElementById('detailView');
+
+  function selectSite(id){
+    var s = sites.filter(function(d){ return d.id === id; })[0];
+    if (!s) return;
+
+    Object.keys(markersById).forEach(function(key){
+      markersById[key].classList.toggle('selected', key === id);
+    });
+    document.querySelectorAll('.list-row').forEach(function(row){
+      row.classList.toggle('active', row.getAttribute('data-id') === id);
+    });
+
+    renderDetail(s);
+    controls.autoRotate = false;
+    world.pointOfView({ lat:s.lat, lng:s.lon, altitude:0.4 }, 900);
+
+    var panel = document.getElementById('detailPanel');
+    panel.style.boxShadow = '0 0 0 2px var(--teal), var(--shadow)';
+    setTimeout(function(){ panel.style.boxShadow = ''; }, 900);
+    if (window.innerWidth < 860) {
+      panel.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+  }
+
+  function renderDetail(s){
+    var t = TYPES[s.type];
+    var households = Math.round(s.annual / HOUSEHOLD_MWH);
+    var co2 = Math.round(s.annual * GRID_FACTOR);
+    detailEl.innerHTML =
+      '<div class="aerial" style="background:linear-gradient(160deg, ' + t.hex + '22, #0a1424 70%)">' +
+        '<div class="grid" style="background-image:repeating-linear-gradient(100deg, ' + t.hex + '55 0 12px, ' + t.hex + '22 12px 14px), repeating-linear-gradient(10deg, transparent 0 20px, rgba(0,0,0,.28) 20px 22px); background-blend-mode:screen;"></div>' +
+        '<div class="shade"></div>' +
+        '<span class="tag">示意畫面 · 待替換實拍</span>' +
+      '</div>' +
+      '<h3 class="display">' + s.name + '</h3>' +
+      '<div class="county">' + s.county + ' · ' + s.year + ' 年完工</div>' +
+      '<div class="badge-line"><span class="type-badge">' + t.label + '</span><span class="type-badge">併網第 ' + (new Date().getFullYear() - s.year) + ' 年</span></div>' +
+      '<div class="stat-grid">' +
+        '<div class="stat"><div class="label">裝置容量</div><div class="value mono">' + s.capacity + ' <small>MW</small></div></div>' +
+        '<div class="stat"><div class="label">年發電量</div><div class="value mono">' + s.annual.toLocaleString() + ' <small>MWh</small></div></div>' +
+        '<div class="stat"><div class="label">約當供電戶數</div><div class="value mono">' + households.toLocaleString() + ' <small>戶/年</small></div></div>' +
+        '<div class="stat"><div class="label">約當減碳量</div><div class="value mono">' + co2.toLocaleString() + ' <small>tCO2/年</small></div></div>' +
+      '</div>' +
+      '<div class="note">範例數據，依台灣家庭年均用電約3 MWh、電網排碳係數約0.495 tCO2/MWh 概估，正式版建議改用實測發電數據。</div>';
+  }
+
+  detailEl.innerHTML = '<div class="empty">從地圖圖釘或左側清單<br>選一個案場查看詳細資訊</div>';
+})();
+</script>
+</body>
+</html>
